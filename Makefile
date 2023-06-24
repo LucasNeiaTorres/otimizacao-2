@@ -1,8 +1,9 @@
 parametrosCompilacao=-Wall -std=c99
+arquivos=arvore.o separacaoGrupos.o
 all: separa
 
-separa: separacaoGrupos.o
-	gcc -o separa separacaoGrupos.o $(parametrosCompilacao)
+separa: ${arquivos}
+	gcc -o separa ${arquivos} $(parametrosCompilacao)
 
 .o: .c
 	gcc -c *.c $(parametrosCompilacao)
