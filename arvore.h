@@ -12,7 +12,9 @@ typedef struct Node {
     struct Node* direita; // Nó filho direito
 } Node;
 
-Node* cria_nodo(int conflitos, int *grupoA, int *grupoB);
+Node* cria_nodo(int conflitos, int *grupoA, int *grupoB, int num_itens);
+
+void exibe_arvore(Node* root);
 
 void free_node(Node* node);
 

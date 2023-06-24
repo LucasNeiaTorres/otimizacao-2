@@ -113,13 +113,13 @@ int branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes,
 
     inclui_elemento(vetorAuxiliarA, proximo_elemento);
     int conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarA, num_itens, num_conflitos);
-    Node *nodo_esquerda = cria_nodo(conflitos_atual, vetorAuxiliarA, node->grupoB);
+    Node *nodo_esquerda = cria_nodo(conflitos_atual, vetorAuxiliarA, node->grupoB, num_itens);
     node->esquerda = nodo_esquerda;
     branchBound(nodo_esquerda, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, melhor_solucao);
 
     inclui_elemento(vetorAuxiliarB, proximo_elemento);
     conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarB, num_itens, num_conflitos);
-    Node *nodo_direita = cria_nodo(conflitos_atual, node->grupoA, vetorAuxiliarB);
+    Node *nodo_direita = cria_nodo(conflitos_atual, node->grupoA, vetorAuxiliarB, num_itens);
     node->direita = nodo_direita;
     branchBound(nodo_direita, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, melhor_solucao);
     
@@ -165,11 +165,13 @@ int main() {
         atribuicoes[i] = i+1;
     }
 
-    Node *raiz =  cria_nodo(num_itens, grupoA, grupoB);
+    Node *raiz =  cria_nodo(num_itens, grupoA, grupoB, num_itens);
 
     int melhor_solucao = branchBound(raiz, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, num_itens);
     printf("%d\n", melhor_solucao);
+    exibe_arvore(raiz);
     // da free arvore
+    // free_tree(raiz);
     for (i = 0; i < num_conflitos; i++)
         free(conflitos[i]);
     free(conflitos);
