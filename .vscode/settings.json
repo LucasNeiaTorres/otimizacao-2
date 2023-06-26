@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "arvore2.C": "cpp"
+        "arvore2.C": "cpp",
+        "arvore.h": "c"
     }
 }

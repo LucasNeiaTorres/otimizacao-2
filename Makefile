@@ -1,5 +1,5 @@
 parametrosCompilacao=-Wall -std=c99
-arquivos=arvore.o separacaoGrupos.o
+arquivos=arvore.o separacaoGrupos.o triangulo.o
 all: separa
 
 separa: ${arquivos}

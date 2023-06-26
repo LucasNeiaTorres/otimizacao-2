@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "arvore.h"
+#include "triangulo.h"
 
 // TODO: implementar funcao objetivo
 // min conflitos(grupoA) + conflitos(grupoB)
@@ -49,18 +50,6 @@ int calcula_afinidades(int **afinidades, int *grupo, int tamanho, int num_afinid
         }
     }
     return qtde;
-}
-
-int eh_conflito(int x, int y, int **conflitos, int num_conflitos)
-{
-    int i;
-    for (i = 0; i < num_conflitos; i++)
-    {
-        // printf("%d == %d | %d == %d || %d == %d | %d == %d\n", x, conflitos[i][0], y, conflitos[i][1], y, conflitos[i][0], x, conflitos[i][1]);
-        if ((x == conflitos[i][0] && y == conflitos[i][1]) || (y == conflitos[i][0] && x == conflitos[i][1]))
-            return 1;
-    }
-    return 0;
 }
 
 int calcula_conflitos(int **conflitos, int *grupo, int tamanho, int num_conflitos)
@@ -139,6 +128,8 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
     printf("Conflitos: %d\n", node->conflitos);
     printf("Melhor solucao até então: %d\n", melhor_solucao->conflitos);
     printf("Quantidade de afinidades: %d\n", melhor_solucao->afinidades);
+    escolhe_heroi(conflitos, num_conflitos, atribuicoes, num_itens);
+    printf("\n QUANTIDADE TRIANGULO %d\n", escolhe_heroi(conflitos, num_conflitos, atribuicoes, num_itens));
     printf("-------------------------\n");
     // caso base
     if (eh_vazio(atribuicoes, num_itens) == 1)
@@ -226,13 +217,13 @@ int main()
     Node *melhor_solucao = cria_nodo(num_itens, 0, grupoA, grupoB, num_itens);
 
     branchBound(raiz, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, melhor_solucao);
-    printf("Melhor solucao: %d\n", melhor_solucao->conflitos);
-    imprime(melhor_solucao->grupoA, num_itens);
-    imprime(melhor_solucao->grupoB, num_itens);
+    // printf("Melhor solucao: %d\n", melhor_solucao->conflitos);
+    // imprime(melhor_solucao->grupoA, num_itens);
+    // imprime(melhor_solucao->grupoB, num_itens);
 
-    exibe_arvore(raiz);
-    // da free arvore
-    // free_tree(raiz);
+    // exibe_arvore(raiz);
+
+    free_tree(raiz);
     free(melhor_solucao);
     free(atribuicoes);
     for (i = 0; i < num_conflitos; i++)
