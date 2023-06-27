@@ -117,6 +117,64 @@ void imprime(int *vetor, int tamanho)
     printf("\n");
 }
 
+void insere_elemento(int *copia_atribuicoes, int num_itens, int elemento)
+{
+    int i = 0;
+    while (copia_atribuicoes[i] != 0)
+        i++;
+    copia_atribuicoes[i] = elemento;
+}
+
+int retorna_indice(int *atribuicoes, int elemento, int num_itens)
+{
+    int i;
+    for (i = 0; i < num_itens; i++)
+    {
+        if (atribuicoes[i] == elemento)
+            return i;
+    }
+    return 0;
+}
+
+int nao_atribuido(int *atribuicoes, int num_itens, int elemento)
+{
+    int i;
+    for (i = 0; i < num_itens; i++)
+    {
+        if (atribuicoes[i] == elemento)
+            return 1;
+    }
+    return 0;
+}
+
+int busca_afinidade(int **afinidades, int *atribuicoes, int num_afinidades, int *copia_atribuicoes, int num_itens, int elemento)
+{
+    int i;
+    for (i = 0; i < num_afinidades; i++)
+    {
+        // printf("ELemento %d \\ ( %d %d )\n",elemento,afinidades[i][0], afinidades[i][1]);
+        if ((elemento == (afinidades[i][0])) && (nao_atribuido(atribuicoes, num_itens, afinidades[i][1]) == 1))
+        {
+            insere_elemento(copia_atribuicoes, num_itens, afinidades[i][1]);
+            atribuicoes[(retorna_indice(atribuicoes, afinidades[i][1], num_itens))] = 0;
+            busca_afinidade(afinidades, atribuicoes, num_afinidades, copia_atribuicoes, num_itens, afinidades[i][1]);
+        }
+        else if ((elemento == (afinidades[i][1])) && (nao_atribuido(atribuicoes, num_itens, afinidades[i][0]) == 1))
+        {
+            insere_elemento(copia_atribuicoes, num_itens, afinidades[i][0]);
+            atribuicoes[(retorna_indice(atribuicoes, afinidades[i][0], num_itens))] = 0;
+            busca_afinidade(afinidades, atribuicoes, num_afinidades, copia_atribuicoes, num_itens, afinidades[i][0]);
+        }
+    }
+}
+
+void atribui_afinidade(int *copia_atribuicoes, int *atribuicoes, int num_itens, int **afinidades, int num_afinidades, int elemento)
+{
+    insere_elemento(copia_atribuicoes, num_itens, elemento);
+    atribuicoes[retorna_indice(atribuicoes,elemento,num_itens)] = 0;
+    busca_afinidade(afinidades, atribuicoes, num_afinidades, copia_atribuicoes, num_itens, elemento);
+}
+
 void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes, int num_itens, int num_conflitos, int num_afinidades, Node *melhor_solucao)
 {
     printf("Grupo A: ");
@@ -126,18 +184,18 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
     printf("O que falta: ");
     imprime(atribuicoes, num_itens);
     printf("Conflitos: %d\n", node->conflitos);
+    printf("Afinidades: %d\n", node->afinidades);
     printf("Melhor solucao até então: %d\n", melhor_solucao->conflitos);
-    printf("Quantidade de afinidades: %d\n", melhor_solucao->afinidades);
-    escolhe_heroi(conflitos, num_conflitos, atribuicoes, num_itens);
     printf("\n QUANTIDADE TRIANGULO %d\n", escolhe_heroi(conflitos, num_conflitos, atribuicoes, num_itens));
     printf("-------------------------\n");
     // caso base
     if (eh_vazio(atribuicoes, num_itens) == 1)
     {
-        if ((node->conflitos < melhor_solucao->conflitos) && (node->afinidades == num_afinidades))
+        if ((node->conflitos <= melhor_solucao->conflitos) && (node->afinidades == num_afinidades))
             *melhor_solucao = *node;
         return;
     }
+
     int *atribuicoesAux = (int *)calloc(num_itens, sizeof(int));
     atribuirVetor(atribuicoesAux, atribuicoes, num_itens);
 
@@ -148,7 +206,10 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
     atribuirVetor(vetorAuxiliarA, node->grupoA, num_itens);
     atribuirVetor(vetorAuxiliarB, node->grupoB, num_itens);
 
-    inclui_elemento(vetorAuxiliarA, proximo_elemento);
+    // atribui_afinidade(atribuicoes, num_itens, vetorAuxiliarA, afinidades, num_afinidades);
+
+    // inclui_elemento(vetorAuxiliarA, proximo_elemento);
+    atribui_afinidade(vetorAuxiliarA, atribuicoesAux, num_itens, afinidades, num_afinidades, proximo_elemento);
     int conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarA, num_itens, num_conflitos);
     conflitos_atual = conflitos_atual + calcula_conflitos(conflitos, node->grupoB, num_itens, num_conflitos);
     int afinidades_atual = calcula_afinidades(afinidades, vetorAuxiliarA, num_itens, num_afinidades);
@@ -157,7 +218,9 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
     node->esquerda = nodo_esquerda;
     branchBound(nodo_esquerda, conflitos, afinidades, atribuicoesAux, num_itens, num_conflitos, num_afinidades, melhor_solucao);
 
-    inclui_elemento(vetorAuxiliarB, proximo_elemento);
+    // inclui_elemento(vetorAuxiliarB, proximo_elemento);
+    atribuirVetor(atribuicoesAux, atribuicoes, num_itens);
+    atribui_afinidade(vetorAuxiliarB, atribuicoesAux, num_itens, afinidades, num_afinidades, proximo_elemento);
     conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarB, num_itens, num_conflitos);
     conflitos_atual = conflitos_atual + calcula_conflitos(conflitos, node->grupoA, num_itens, num_conflitos);
     afinidades_atual = calcula_afinidades(afinidades, vetorAuxiliarB, num_itens, num_afinidades);
@@ -213,13 +276,13 @@ int main()
         atribuicoes[i] = i + 1;
     }
 
+    Node *melhor_solucao = cria_nodo(num_conflitos, 0, grupoA, grupoB, num_itens);
     Node *raiz = cria_nodo(num_itens, 0, grupoA, grupoB, num_itens);
-    Node *melhor_solucao = cria_nodo(num_itens, 0, grupoA, grupoB, num_itens);
 
     branchBound(raiz, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, melhor_solucao);
-    // printf("Melhor solucao: %d\n", melhor_solucao->conflitos);
-    // imprime(melhor_solucao->grupoA, num_itens);
-    // imprime(melhor_solucao->grupoB, num_itens);
+    printf("Melhor solucao: %d\n", melhor_solucao->conflitos);
+    imprime(melhor_solucao->grupoA, num_itens);
+    imprime(melhor_solucao->grupoB, num_itens);
 
     // exibe_arvore(raiz);
 

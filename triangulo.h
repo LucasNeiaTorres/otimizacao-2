@@ -7,6 +7,8 @@ typedef struct Triangulo{
     int z;
 }Triangulo;
 
+int insereTriangulo(Triangulo *triangulos, int num_items, int heroi_x, int heroi_y, int heroi_z);
+
 int eh_conflito(int x, int y, int **conflitos, int num_conflitos);
 
 int atribuido(int *atribuicoes, int num_items, int super_heroi);

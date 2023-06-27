@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+int insereTriangulo(Triangulo *triangulos, int num_items, int heroi_x, int heroi_y, int heroi_z)
+{
+    int indiceAtual = ultima_posicao(triangulos, num_items);
+    triangulos[indiceAtual].x = heroi_x;
+    triangulos[indiceAtual].y = heroi_y;
+    triangulos[indiceAtual].z = heroi_z;
+}
+
 int eh_conflito(int x, int y, int **conflitos, int num_conflitos)
 {
     int i;
@@ -42,14 +50,12 @@ int existe_par(Triangulo *triangulos, int num_items, int x, int y)
 {
     int i = 0;
     int indiceAtual = ultima_posicao(triangulos, num_items);
-    printf("\n%d %d == ",x, y);
+    // printf("\n%d %d == ",x, y);
     for (i = 0; i < indiceAtual; i++)
     {
-        printf("%d %d %d\n", triangulos[i].x, triangulos[i].y, triangulos[i].z);
-        if ((x == triangulos[i].x && y == triangulos[i].y) || (x == triangulos[i].y && y == triangulos[i].x)) {
-            printf("deu iguallllllllllll\n");
+        // printf("%d %d %d\n", triangulos[i].x, triangulos[i].y, triangulos[i].z);
+        if ((x == triangulos[i].x && y == triangulos[i].y) || (x == triangulos[i].y && y == triangulos[i].x))
             return 1;
-        }
         else if ((x == triangulos[i].x && y == triangulos[i].z) || (x == triangulos[i].z && y == triangulos[i].x))
             return 1;
         else if ((x == triangulos[i].y && y == triangulos[i].z) || (x == triangulos[i].z && y == triangulos[i].y))
@@ -61,17 +67,14 @@ int existe_par(Triangulo *triangulos, int num_items, int x, int y)
 int eh_triangulo(int heroi_inicial, int heroi_conflito, int **conflitos, int num_conflitos, int *atribuicoes, int num_items, int posicao, Triangulo *triangulos)
 {
     int i;
-    int indiceAtual = ultima_posicao(triangulos, num_items);
     for (i = posicao + 1; i < num_conflitos; i++)
     {
         if ((heroi_conflito == conflitos[i][0]) && (atribuido(atribuicoes, num_items, conflitos[i][1]) == 1) && (existe_par(triangulos, num_items, heroi_conflito, conflitos[i][1]) == 0))
         {
             if ((eh_conflito(heroi_inicial, conflitos[i][1], conflitos, num_conflitos)) && (existe_par(triangulos, num_items, heroi_inicial, conflitos[i][1]) == 0))
             {
-                printf("Coloca %d %d %d\n", heroi_inicial, heroi_conflito, conflitos[i][1]);
-                triangulos[indiceAtual].x = heroi_inicial;
-                triangulos[indiceAtual].y = heroi_conflito;
-                triangulos[indiceAtual].z = conflitos[i][1];
+                // printf("Coloca %d %d %d\n", heroi_inicial, heroi_conflito, conflitos[i][1]);
+                insereTriangulo(triangulos, num_items, heroi_inicial, heroi_conflito, conflitos[i][1]);
                 return 1;
             }
         }
@@ -79,10 +82,8 @@ int eh_triangulo(int heroi_inicial, int heroi_conflito, int **conflitos, int num
         {
             if ((eh_conflito(heroi_inicial, conflitos[i][0], conflitos, num_conflitos)) && (existe_par(triangulos, num_items, heroi_inicial, conflitos[i][0]) == 0))
             {
-                printf("Coloca %d %d %d\n", heroi_inicial, heroi_conflito, conflitos[i][0]);
-                triangulos[indiceAtual].x = heroi_inicial;
-                triangulos[indiceAtual].y = heroi_conflito;
-                triangulos[indiceAtual].z = conflitos[i][0];
+                // printf("Coloca %d %d %d\n", heroi_inicial, heroi_conflito, conflitos[i][0]);
+                insereTriangulo(triangulos, num_items, heroi_inicial, heroi_conflito, conflitos[i][0]);
                 return 1;
             }
         }
