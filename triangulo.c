@@ -127,7 +127,7 @@ int escolhe_heroi(int **conflitos, int num_conflitos, int *atribuicoes, int num_
     int tamanhoTriangulos = ultima_posicao(triangulos, num_items);
     for (i = 0; i < tamanhoTriangulos; i++)
     {
-        printf("\n\nTRIANGULO: %d %d %d\n\n", triangulos[i].x, triangulos[i].y, triangulos[i].z);
+        printf("TRIANGULO: %d %d %d\n", triangulos[i].x, triangulos[i].y, triangulos[i].z);
     }
     free(triangulos);
     return qtde_triangulos;

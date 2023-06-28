@@ -3,13 +3,7 @@
 #include <string.h>
 #include "arvore.h"
 #include "triangulo.h"
-
-// TODO: implementar funcao objetivo
-// min conflitos(grupoA) + conflitos(grupoB)
-// s.a len(grupoA) + len(grupoB) = n
-// s.a len(grupoA) > 0
-// s.a len(grupoB) > 0
-// s.a afinidades c grupoA
+#include "parametros.h"
 
 // Função para calcular o limite superior (upper bound) de um nó da árvore de busca
 // int calculateUpperBound(int** conflicts, int** affinities, int* assignment, int numItems, int numConflicts, int numAffinities) {
@@ -168,14 +162,24 @@ int busca_afinidade(int **afinidades, int *atribuicoes, int num_afinidades, int 
     }
 }
 
-void atribui_afinidade(int *copia_atribuicoes, int *atribuicoes, int num_itens, int **afinidades, int num_afinidades, int elemento)
+void atribui_afinidade(int *copia_atribuicoes, int *atribuicoes, int num_itens, int **afinidades, int num_afinidades)
 {
+    int i;
+    int elemento = 0;
+    for (i = 0; i < num_itens; i++)
+    {
+        if (atribuicoes[i] != 0)
+        {
+            elemento = atribuicoes[i];
+            break;
+        }
+    }
     insere_elemento(copia_atribuicoes, num_itens, elemento);
-    atribuicoes[retorna_indice(atribuicoes,elemento,num_itens)] = 0;
+    atribuicoes[retorna_indice(atribuicoes, elemento, num_itens)] = 0;
     busca_afinidade(afinidades, atribuicoes, num_afinidades, copia_atribuicoes, num_itens, elemento);
 }
 
-void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes, int num_itens, int num_conflitos, int num_afinidades, Node *melhor_solucao)
+void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes, int num_itens, int num_conflitos, int num_afinidades, Node *melhor_solucao, parametros_t parametros)
 {
     printf("Grupo A: ");
     imprime(node->grupoA, num_itens);
@@ -199,35 +203,54 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
     int *atribuicoesAux = (int *)calloc(num_itens, sizeof(int));
     atribuirVetor(atribuicoesAux, atribuicoes, num_itens);
 
-    int proximo_elemento = primeiro_elemento(atribuicoesAux, num_itens);
     int *vetorAuxiliarA = (int *)calloc(num_itens, sizeof(int));
     int *vetorAuxiliarB = (int *)calloc(num_itens, sizeof(int));
 
     atribuirVetor(vetorAuxiliarA, node->grupoA, num_itens);
     atribuirVetor(vetorAuxiliarB, node->grupoB, num_itens);
 
-    // atribui_afinidade(atribuicoes, num_itens, vetorAuxiliarA, afinidades, num_afinidades);
+    int proximo_elemento;
+    printf("%d\n", parametros.viabilidade);
+    if (parametros.viabilidade == 1)
+    {
+        atribui_afinidade(vetorAuxiliarA, atribuicoesAux, num_itens, afinidades, num_afinidades);
+        atribuirVetor(atribuicoesAux, atribuicoes, num_itens);
+        atribui_afinidade(vetorAuxiliarB, atribuicoesAux, num_itens, afinidades, num_afinidades);
+    }
+    else {
+        proximo_elemento = primeiro_elemento(atribuicoesAux, num_itens);
+        inclui_elemento(vetorAuxiliarA, proximo_elemento);
+        inclui_elemento(vetorAuxiliarB, proximo_elemento);
+    }
 
-    // inclui_elemento(vetorAuxiliarA, proximo_elemento);
-    atribui_afinidade(vetorAuxiliarA, atribuicoesAux, num_itens, afinidades, num_afinidades, proximo_elemento);
-    int conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarA, num_itens, num_conflitos);
-    conflitos_atual = conflitos_atual + calcula_conflitos(conflitos, node->grupoB, num_itens, num_conflitos);
-    int afinidades_atual = calcula_afinidades(afinidades, vetorAuxiliarA, num_itens, num_afinidades);
-    afinidades_atual = afinidades_atual + calcula_afinidades(afinidades, node->grupoB, num_itens, num_afinidades);
-    Node *nodo_esquerda = cria_nodo(conflitos_atual, afinidades_atual, vetorAuxiliarA, node->grupoB, num_itens);
-    node->esquerda = nodo_esquerda;
-    branchBound(nodo_esquerda, conflitos, afinidades, atribuicoesAux, num_itens, num_conflitos, num_afinidades, melhor_solucao);
+    if(parametros.professor == 1) {
+        int funcao_limitante = node->conflitos + escolhe_heroi(conflitos, num_conflitos, atribuicoesAux, num_itens);
+        if(funcao_limitante >= melhor_solucao->conflitos)
+            return;
+    }
 
-    // inclui_elemento(vetorAuxiliarB, proximo_elemento);
-    atribuirVetor(atribuicoesAux, atribuicoes, num_itens);
-    atribui_afinidade(vetorAuxiliarB, atribuicoesAux, num_itens, afinidades, num_afinidades, proximo_elemento);
-    conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarB, num_itens, num_conflitos);
-    conflitos_atual = conflitos_atual + calcula_conflitos(conflitos, node->grupoA, num_itens, num_conflitos);
-    afinidades_atual = calcula_afinidades(afinidades, vetorAuxiliarB, num_itens, num_afinidades);
-    afinidades_atual = afinidades_atual + calcula_afinidades(afinidades, node->grupoA, num_itens, num_afinidades);
-    Node *nodo_direita = cria_nodo(conflitos_atual, afinidades_atual, node->grupoA, vetorAuxiliarB, num_itens);
-    node->direita = nodo_direita;
-    branchBound(nodo_direita, conflitos, afinidades, atribuicoesAux, num_itens, num_conflitos, num_afinidades, melhor_solucao);
+    if((parametros.otimalidade == 1) && (node->conflitos >= melhor_solucao->conflitos)){
+        return;
+    } else {
+        int conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarA, num_itens, num_conflitos);
+        conflitos_atual = conflitos_atual + calcula_conflitos(conflitos, node->grupoB, num_itens, num_conflitos);
+        int afinidades_atual = calcula_afinidades(afinidades, vetorAuxiliarA, num_itens, num_afinidades);
+        afinidades_atual = afinidades_atual + calcula_afinidades(afinidades, node->grupoB, num_itens, num_afinidades);
+        Node *nodo_esquerda = cria_nodo(conflitos_atual, afinidades_atual, vetorAuxiliarA, node->grupoB, num_itens);
+        node->esquerda = nodo_esquerda;
+        branchBound(nodo_esquerda, conflitos, afinidades, atribuicoesAux, num_itens, num_conflitos, num_afinidades, melhor_solucao, parametros);
+
+        // atribuirVetor(atribuicoesAux, atribuicoes, num_itens);
+        // atribui_afinidade(vetorAuxiliarB, atribuicoesAux, num_itens, afinidades, num_afinidades, proximo_elemento);
+        conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarB, num_itens, num_conflitos);
+        conflitos_atual = conflitos_atual + calcula_conflitos(conflitos, node->grupoA, num_itens, num_conflitos);
+        afinidades_atual = calcula_afinidades(afinidades, vetorAuxiliarB, num_itens, num_afinidades);
+        afinidades_atual = afinidades_atual + calcula_afinidades(afinidades, node->grupoA, num_itens, num_afinidades);
+        Node *nodo_direita = cria_nodo(conflitos_atual, afinidades_atual, node->grupoA, vetorAuxiliarB, num_itens);
+        node->direita = nodo_direita;
+        branchBound(nodo_direita, conflitos, afinidades, atribuicoesAux, num_itens, num_conflitos, num_afinidades, melhor_solucao, parametros);
+    }
+
 
     free(atribuicoesAux);
     free(vetorAuxiliarA);
@@ -235,7 +258,7 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
     return;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     int num_itens;      // n
     int num_conflitos;  // m
@@ -245,7 +268,23 @@ int main()
     int *grupoA;
     int *grupoB;
     int *atribuicoes;
+    int arg;
+    parametros_t parametros;
 
+    parametros.otimalidade = 1;
+    parametros.viabilidade = 1;
+    parametros.professor = 0;
+
+    for (arg = 0; arg < argc; arg++)
+    {
+        if (!strcmp(argv[arg], "-o"))
+            parametros.otimalidade = 0;
+        else if (!strcmp(argv[arg], "-f"))
+            parametros.viabilidade = 0;
+        else if (!strcmp(argv[arg], "-a"))
+            parametros.professor = 1;
+    }
+    printf("-o: %d  -f: %d  -a: %d\n", parametros.otimalidade, parametros.viabilidade, parametros.professor);
     // Leitura dos dados
     scanf("%d %d %d", &num_itens, &num_conflitos, &num_afinidades);
 
@@ -279,12 +318,13 @@ int main()
     Node *melhor_solucao = cria_nodo(num_conflitos, 0, grupoA, grupoB, num_itens);
     Node *raiz = cria_nodo(num_itens, 0, grupoA, grupoB, num_itens);
 
-    branchBound(raiz, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, melhor_solucao);
+    branchBound(raiz, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, melhor_solucao, parametros);
     printf("Melhor solucao: %d\n", melhor_solucao->conflitos);
     imprime(melhor_solucao->grupoA, num_itens);
     imprime(melhor_solucao->grupoB, num_itens);
 
-    // exibe_arvore(raiz);
+    printf("Nós totais: %d\n", conta_nos(raiz));
+
 
     free_tree(raiz);
     free(melhor_solucao);
