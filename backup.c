@@ -107,10 +107,7 @@ void imprime(int *vetor, int tamanho)
 {
     int i;
     for (i = 0; i < tamanho; i++)
-    {
-        if (vetor[i] != 0)
-            printf("%d ", vetor[i]);
-    }
+        printf("%d ", vetor[i]);
     printf("\n");
 }
 
@@ -219,6 +216,8 @@ int valor_maximo(int *vetorA, int *vetorB, int num_itens, int **conflitos, int n
     return maior;
 }
 
+
+
 void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes, int num_itens, int num_conflitos, int num_afinidades, Node *melhor_solucao, parametros_t parametros)
 {
     printf("Grupo A: ");
@@ -238,7 +237,7 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
     // caso base
     if (eh_vazio(atribuicoes, num_itens) == 1)
     {
-        if ((node->conflitos <= melhor_solucao->conflitos) && (node->afinidades == num_afinidades) && (!eh_vazio(node->grupoA, num_itens)) && (!eh_vazio(node->grupoB, num_itens)))
+        if ((node->conflitos <= melhor_solucao->conflitos) && (node->afinidades == num_afinidades))
             *melhor_solucao = *node;
         return;
     }
@@ -269,12 +268,6 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
 
     if (parametros.professor == 1)
     {
-        int funcao_limitante = node->conflitos + escolhe_heroi(conflitos, num_conflitos, atribuicoesAux, num_itens);
-        if (funcao_limitante >= melhor_solucao->conflitos)
-            return;
-    }
-    else
-    {
         int funcao_limitante = node->conflitos + escolhe_heroi(conflitos, num_conflitos, atribuicoesAux, num_itens) + maior_valor;
         if (funcao_limitante >= melhor_solucao->conflitos)
             return;
@@ -294,6 +287,8 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
         node->esquerda = nodo_esquerda;
         branchBound(nodo_esquerda, conflitos, afinidades, atribuicoesAux, num_itens, num_conflitos, num_afinidades, melhor_solucao, parametros);
 
+        // atribuirVetor(atribuicoesAux, atribuicoes, num_itens);
+        // atribui_afinidade(vetorAuxiliarB, atribuicoesAux, num_itens, afinidades, num_afinidades, proximo_elemento);
         conflitos_atual = calcula_conflitos(conflitos, vetorAuxiliarB, num_itens, num_conflitos);
         conflitos_atual = conflitos_atual + calcula_conflitos(conflitos, node->grupoA, num_itens, num_conflitos);
         afinidades_atual = calcula_afinidades(afinidades, vetorAuxiliarB, num_itens, num_afinidades);
@@ -307,11 +302,6 @@ void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes
     free(vetorAuxiliarA);
     free(vetorAuxiliarB);
     return;
-}
-
-int comparador(const void *a, const void *b)
-{
-    return (*(int *)a - *(int *)b);
 }
 
 int main(int argc, char *argv[])
@@ -371,14 +361,11 @@ int main(int argc, char *argv[])
         atribuicoes[i] = i + 1;
     }
 
-    Node *melhor_solucao = cria_nodo(num_conflitos + 1, 0, grupoA, grupoB, num_itens);
-    Node *raiz = cria_nodo(num_conflitos, 0, grupoA, grupoB, num_itens);
+    Node *melhor_solucao = cria_nodo(num_conflitos, 0, grupoA, grupoB, num_itens);
+    Node *raiz = cria_nodo(num_itens, 0, grupoA, grupoB, num_itens);
 
     branchBound(raiz, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, melhor_solucao, parametros);
     printf("Melhor solucao: %d\n", melhor_solucao->conflitos);
-
-    qsort(melhor_solucao->grupoA, num_itens, sizeof(int), comparador);
-
     imprime(melhor_solucao->grupoA, num_itens);
     imprime(melhor_solucao->grupoB, num_itens);
 
