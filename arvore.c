@@ -11,6 +11,7 @@ Node *cria_nodo(int conflitos, int afinidades, int *grupoA, int *grupoB, int num
     node->grupoA = (int *)calloc(num_itens, sizeof(int));
     node->grupoB = (int *)calloc(num_itens, sizeof(int));
     memcpy(node->grupoA, grupoA, num_itens * sizeof(int));
+    // printf("%d\n", node->grupoA[num_itens-1]);
     memcpy(node->grupoB, grupoB, num_itens * sizeof(int));
     node->esquerda = NULL;
     node->direita = NULL;

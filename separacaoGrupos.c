@@ -4,20 +4,7 @@
 #include "arvore.h"
 #include "triangulo.h"
 #include "parametros.h"
-
-// Função para calcular o limite superior (upper bound) de um nó da árvore de busca
-// int calculateUpperBound(int** conflicts, int** affinities, int* assignment, int numItems, int numConflicts, int numAffinities) {
-//     int conflictsCount = calculateConflicts(conflicts, assignment, numItems, numConflicts);
-//     int affinitiesCount = 0;
-//     for (int i = 0; i < numAffinities; i++) {
-//         int item1 = affinities[i][0];
-//         int item2 = affinities[i][1];
-//         if (assignment[item1] == assignment[item2]) {
-//             affinitiesCount++;
-//         }
-//     }
-//     return conflictsCount + affinitiesCount;
-// }
+#include <time.h>
 
 int eh_afinidade(int x, int y, int **afinidades, int num_afinidades)
 {
@@ -204,7 +191,6 @@ int valor_maximo(int *vetorA, int *vetorB, int num_itens, int **conflitos, int n
     // printf("Vetor: ");
     for (i = 0; i < num_itens; i++)
     {
-        // printf("%d .",vetorB[i]);/
         if (vetorA[i] != 0)
             conflitosA = (retorna_conflitos(conflitos, num_conflitos, vetorA[i]));
         if (vetorB[i] != 0)
@@ -221,20 +207,20 @@ int valor_maximo(int *vetorA, int *vetorB, int num_itens, int **conflitos, int n
 
 void branchBound(Node *node, int **conflitos, int **afinidades, int *atribuicoes, int num_itens, int num_conflitos, int num_afinidades, Node *melhor_solucao, parametros_t parametros)
 {
-    printf("Grupo A: ");
-    imprime(node->grupoA, num_itens);
-    printf("Grupo B: ");
-    imprime(node->grupoB, num_itens);
-    printf("O que falta: ");
-    imprime(atribuicoes, num_itens);
-    printf("Conflitos: %d\n", node->conflitos);
-    printf("Afinidades: %d\n", node->afinidades);
-    printf("Melhor solucao até então: %d\n", melhor_solucao->conflitos);
-    printf("\n QUANTIDADE TRIANGULO %d\n", escolhe_heroi(conflitos, num_conflitos, atribuicoes, num_itens));
-    printf("-------------------------\n");
+    // printf("Grupo A: ");
+    // imprime(node->grupoA, num_itens);
+    // printf("Grupo B: ");
+    // imprime(node->grupoB, num_itens);
+    // printf("O que falta: ");
+    // imprime(atribuicoes, num_itens);
+    // printf("Conflitos: %d\n", node->conflitos);
+    // printf("Afinidades: %d\n", node->afinidades);
+    // printf("Melhor solucao até então: %d\n", melhor_solucao->conflitos);
+    // printf("\n QUANTIDADE TRIANGULO %d\n", escolhe_heroi(conflitos, num_conflitos, atribuicoes, num_itens));
+    // printf("-------------------------\n");
     int maior_valor = 0;
     maior_valor = valor_maximo(node->grupoA, node->grupoB, num_itens, conflitos, num_conflitos);
-    printf("MAIOR VALOR ENCONTRADO DENTRE INSERIDOS: %d\n", maior_valor);
+    // printf("MAIOR VALOR ENCONTRADO DENTRE INSERIDOS: %d\n", maior_valor);
     // caso base
     if (eh_vazio(atribuicoes, num_itens) == 1)
     {
@@ -314,6 +300,19 @@ int comparador(const void *a, const void *b)
     return (*(int *)a - *(int *)b);
 }
 
+int temNoGrupo(int *vetor, int valor, int tamanho)
+{
+    int i;
+    for (i = 0; i < tamanho; i++)
+    {
+        if (vetor[i] == valor)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     int num_itens;      // n
@@ -326,6 +325,8 @@ int main(int argc, char *argv[])
     int *atribuicoes;
     int arg;
     parametros_t parametros;
+    clock_t inicio, fim;
+    double tempo_execucao;
 
     parametros.otimalidade = 1;
     parametros.viabilidade = 1;
@@ -340,7 +341,7 @@ int main(int argc, char *argv[])
         else if (!strcmp(argv[arg], "-a"))
             parametros.professor = 1;
     }
-    printf("-o: %d  -f: %d  -a: %d\n", parametros.otimalidade, parametros.viabilidade, parametros.professor);
+
     // Leitura dos dados
     scanf("%d %d %d", &num_itens, &num_conflitos, &num_afinidades);
 
@@ -370,19 +371,28 @@ int main(int argc, char *argv[])
     {
         atribuicoes[i] = i + 1;
     }
-
     Node *melhor_solucao = cria_nodo(num_conflitos + 1, 0, grupoA, grupoB, num_itens);
     Node *raiz = cria_nodo(num_conflitos, 0, grupoA, grupoB, num_itens);
-
+    inicio = clock();
     branchBound(raiz, conflitos, afinidades, atribuicoes, num_itens, num_conflitos, num_afinidades, melhor_solucao, parametros);
-    printf("Melhor solucao: %d\n", melhor_solucao->conflitos);
+    fim = clock();
+    tempo_execucao = ((double)(fim - inicio)) / CLOCKS_PER_SEC;
 
-    qsort(melhor_solucao->grupoA, num_itens, sizeof(int), comparador);
+    printf("%d\n", melhor_solucao->conflitos);
 
-    imprime(melhor_solucao->grupoA, num_itens);
-    imprime(melhor_solucao->grupoB, num_itens);
+    if (temNoGrupo(melhor_solucao->grupoA, 1, num_itens) == 1)
+    {
+        qsort(melhor_solucao->grupoA, num_itens, sizeof(int), comparador);
+        imprime(melhor_solucao->grupoA, num_itens);
+    }
+    else
+    {
+        qsort(melhor_solucao->grupoB, num_itens, sizeof(int), comparador);
+        imprime(melhor_solucao->grupoB, num_itens);
+    }
 
-    printf("Nós totais: %d\n", conta_nos(raiz));
+    fprintf(stderr, "Nós totais: %d\n", conta_nos(raiz));
+    fprintf(stderr, "Tempo de execução: %f\n", tempo_execucao);
 
     free_tree(raiz);
     free(melhor_solucao);
